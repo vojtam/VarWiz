@@ -15,10 +15,12 @@ preprocess_data <- function() {
   variants_tab <- variants_tab_full[, .(Consequence, GIVEN_REF, Allele, Gene, BIOTYPE, SOURCE, SYMBOL, VARIANT_CLASS, chrom, pos)]
   variants_tab <- variants_tab[SOURCE == "Ensembl"]
   
-  setnames(variants_tab, old = "Gene", new = "ensembl_id")
+  setnames(variants_tab,
+           old = c("Gene", "GIVEN_REF", "BIOTYPE", "SYMBOL", "VARIANT_CLASS"),
+           new = c("ensembl_id", "given_ref", "biotype", "gene_name", "variant_class"))
   
   ## join the tables
   tab <- variants_tab[kegg_tab, on = "ensembl_id", nomatch = 0]
-  tab[, gene_definition := NULL]
+  tab[, `:=`(gene_definition = NULL, SOURCE = NULL, type = NULL)]
   return(tab)
 }

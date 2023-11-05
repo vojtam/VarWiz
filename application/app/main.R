@@ -37,6 +37,6 @@ server <- function(id) {
     
     data <- preprocess_data()
     table$server("table", data)
-    sankey$server("sankey")
+    sankey$server("sankey", data)
   })
 }
