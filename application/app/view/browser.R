@@ -25,6 +25,8 @@ server <- function(id, dataset) {
       DT::datatable(
         dataset,
         options = list(
+          scrollX = TRUE,
+          scrollCollapse = TRUE,
           initComplete = JS(
             "function(settings, json) {",
             "$(this.api().table().header()).css({'background-color': '#001f3f', 'color': 'white'});",
