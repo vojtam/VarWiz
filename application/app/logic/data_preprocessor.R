@@ -24,3 +24,6 @@ preprocess_data <- function() {
   tab[, `:=`(gene_definition = NULL, SOURCE = NULL, type = NULL)]
   return(tab)
 }
+
+
+
