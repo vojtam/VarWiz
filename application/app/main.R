@@ -1,7 +1,8 @@
 box::use(
   shiny[bootstrapPage, div, icon, moduleServer, fluidRow, NS, renderUI, tags, uiOutput],
   bs4Dash[box, dashboardPage, tabItems, tabItem, sidebarMenu, menuItem, dashboardHeader, column, dashboardBrand, dashboardSidebar, dashboardBody],
-  thematic[thematic_shiny]    
+  thematic[thematic_shiny],
+  shinyjs[useShinyjs, runjs]
 )
 
 box::use(
@@ -20,6 +21,7 @@ thematic_shiny()
 #' @export
 ui <- function(id) {
   ns <- NS(id)
+  useShinyjs()
   dashboardPage(
     header = dashboardHeader(
       title = "VarWiz",
@@ -77,7 +79,7 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   moduleServer(id, function(input, output, session) {
-    
+    runjs("console.log('hello')")
     data <- preprocess_data()
     browser$server("browser", data)
     selected_pathways <- table$server("table", data)

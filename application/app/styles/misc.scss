@@ -1,3 +1,8 @@
+$dark-blue: #000046;
+$light-blue: #1CB5E0;
+$full-red: #cc1425;
+$light-red: #dc3545;
+
 .header-btns {
     width: 100%;
     display: flex;
@@ -6,8 +11,7 @@
 }
 
 
- .main-sidebar {
-  background-color: #f4b943;
+.shiny-output-error-validation {
+  color: $dark-blue;
+  font-size: 22px;
 }
-                                
-                                

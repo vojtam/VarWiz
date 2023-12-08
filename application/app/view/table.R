@@ -18,9 +18,10 @@ ui <- function(id) {
       solidHeader = TRUE,
       title = div(
         class = "header-btns",
-        bs4Dash::actionButton(ns("reset_btn"),
-                                        label = "Reset selection",
-                                        status = "secondary"
+        bs4Dash::actionButton(
+          ns("reset_btn"),
+          label = "Reset selection",
+          status = "secondary"
         ),
         HTML(
           '
@@ -77,7 +78,6 @@ server <- function(id, data) {
     })
     
     observeEvent(pathways_tab(),{
-      print("now")
       req(pathways_tab())
       output$table <- render_pathways_table(
         pathways_tab(),
