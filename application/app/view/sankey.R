@@ -14,12 +14,13 @@ ui <- function(id) {
     
     box(
       width = 12,
+      height = "50vh",
       title = "Sankey Diagram",
       status = "navy",
       maximizable = TRUE,
       solidHeader = TRUE,
       id = ns("sankey_box"),
-      plotlyOutput(ns("sankey"))
+      plotlyOutput(ns("sankey_plt"), height = "50vh")
     )
   )
 }
@@ -40,7 +41,7 @@ server <- function(id, dataset, selected_pathways_react) {
     })
     
     
-    output$sankey <- renderPlotly({
+    output$sankey_plt <- renderPlotly({
       validate(
         need(!is.null(selected_pathways_react()), "select the pathways that you want to visualize from the table on the right")
       )
@@ -49,17 +50,10 @@ server <- function(id, dataset, selected_pathways_react) {
     })
     observeEvent(input$sankey_box$maximized, {
       print("MAXIM")
-      non_max_height = "800px"
       plot_height <- if (input$sankey_box$maximized) {
-        "100vh"
-      } else {
-        non_max_height
-      }
-      
-      plot_width <- if (input$sankey_box$maximized) {
-        "100vw"
-      } else {
         "100%"
+      } else {
+        "50vh"
       }
       
       js_call <- sprintf(
@@ -67,15 +61,20 @@ server <- function(id, dataset, selected_pathways_react) {
       console.log('TRIGGER');
       setTimeout(() => {
         $('#%s').css('height', '%s');
-      }, 300)
+      }, 500)
+      $('#%s').trigger('resize');
       $('#%s').trigger('resize');
       ",
-      ns("sankey"),
+      "app-sankey-sankey_plt",
       plot_height,
-      ns("sankey")
+      "app-sankey-sankey_plt",
+      "app-sankey-sankey_plt"
       )
       shinyjs::runjs(js_call)
+      shinyjs::runjs("console.log('Hello JS')")
     }, ignoreInit = TRUE)
+  
+     
   })
 }
 
@@ -142,9 +141,9 @@ add_plot_maximize_observer <- function(input,
                                        box_id,
                                        plot_name,
                                        non_max_height = "400px") {
-  observeEvent(input[[box_id]]$maximized, {
+  observeEvent(input$box_id$maximized, {
     print("MAXIM")
-    plot_height <- if (input[[box_id]]$maximized) {
+    plot_height <- if (input$box_id$maximized) {
       "100%"
     } else {
       non_max_height

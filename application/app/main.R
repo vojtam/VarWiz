@@ -21,7 +21,6 @@ thematic_shiny()
 #' @export
 ui <- function(id) {
   ns <- NS(id)
-  useShinyjs()
   dashboardPage(
     header = dashboardHeader(
       title = "VarWiz",
@@ -43,6 +42,26 @@ ui <- function(id) {
       )
     ),
     body = dashboardBody(
+      tags$head(
+        tags$script(
+          "$(function() {
+              $('[data-card-widget=\"maximize\"]').on('click', function() {
+                setTimeout(function() {
+                  var isMaximized = $('html').hasClass('maximized-card');
+                  if (isMaximized) {
+                    $('#app-sankey-sankey').css('height', '1000px');
+                  } else {
+                    $('#app-sankey-sankey').css('height', '400px');
+                  }
+                }, 300);
+                $('#app-sankey-sankey').trigger('resize');
+              });
+            });
+            "
+        )
+      ),
+      
+      useShinyjs(),
       tabItems(
         tabItem(
           tabName = "visualization_tab",
