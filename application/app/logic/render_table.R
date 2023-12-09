@@ -1,16 +1,23 @@
 
 
+#' render_genes_table
+#'
+#' @param all_pathways_tab a data table with a single column e.g.
+#'  | gene_name |
+#'    RPL22
+#' @param selected a (1-based) vector of indices of selected genes
+#' - used if we have been using pathways table and now we have switched back to
+#'  genes tab and want to rerender the table, keeping the genes that we selected
+#'  previously
+#'
+#' @return rendered DT table 
+#' @export
+#'
+#' @examples
 render_genes_table <- function(gene_tab, selected = NULL) {
   print(selected)
   DT::renderDT({
-    # gene_tab[, link := paste0(
-    #   '<a onmousedown="event.preventDefault(); event.stopPropagation(); return false;" target=_blank href="https://www.genecards.org/cgi-bin/carddisp.pl?gene=',
-    #   gene_name, '">', '<i class="feature-link fa fa-link"></i>', "</a>"
-    # )]
-    # gene_tab[, pathways := sprintf(
-    #   '<button id="%s" type="button" class="btn action-button btn-secondary" onmousedown="event.preventDefault(); event.stopPropagation(); return false;" onclick="%s">Show</button>', 
-    #   gene_name, "Shiny.setInputValue('select_features-gene_pathways_btn', this.id);")]
-    
+   
     DT::datatable(
       gene_tab,
       escape = FALSE,
@@ -27,11 +34,22 @@ render_genes_table <- function(gene_tab, selected = NULL) {
 }
 
 
+#' render_pathways_table
+#'
+#' @param all_pathways_tab a data table with a single column e.g.
+#'  | pathway |
+#'    Covid-19
+#' @param selected a (1-based) vector of indices of selected pathways
+#' - used if we have been using gene table and now we have switched back
+#'  to pathways and want to rerender the table, keeping the pathways that
+#'  we selected previously
+#'
+#' @return rendered DT table 
+#' @export
+#'
+#' @examples
 render_pathways_table <- function(all_pathways_tab, selected = NULL) {
   print(selected)
-  # all_pathways_tab[, genes := sprintf(
-  #   '<button id="%s" type="button" class="btn action-button btn-secondary" onmousedown="event.preventDefault(); event.stopPropagation(); return false;" onclick="%s">Show</button>', 
-  #   pathway, "Shiny.setInputValue('table-pathway_genes_btn', this.id);")]
   DT::renderDT({
     tab <- DT::datatable(
       all_pathways_tab,

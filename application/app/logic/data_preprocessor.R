@@ -4,9 +4,19 @@ box::use(
 )
 
 
-#' export
+#' preprocess_data
+#' @description
+#' This function loads the datasets tsvs, merges them and filters the columns
+#' 
+#'
+#' @return table with the following columns:
+#' Consequence | given_ref | Allele | var_name | ensembl_id | biotype |
+#' gene_name | variant_class | chrom | pos | all_kegg_gene_names | refseq_id |
+#' kegg_paths_id | kegg_paths_name
+#' @export
+#'
+#' @examples
 preprocess_data <- function() {
-  
   data_dir <- file.path("data/")
   
   variants_tab_full <- fread(file.path(data_dir, "all_variants.annotated.processed.tsv"))
