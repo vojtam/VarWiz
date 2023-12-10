@@ -37,6 +37,7 @@ box::use(
 sankey_prepare_data <- function(dataset, selected_pathways) {
   # filter the selected_pathways -> | gene_name | kegg_paths_name |
   sankey_data <- dataset[kegg_paths_name %in% selected_pathways$pathway, .(gene_name, kegg_paths_name, var_name)]
+  setorder(sankey_data, kegg_paths_name, gene_name)
   labels_all <- data.table(
     label = c(sankey_data$kegg_paths_name, sankey_data$gene_name, sankey_data$var_name)
   )
@@ -70,8 +71,11 @@ create_sankey <- function(labels, path_gene, gene_variant, scores) {
   fig <- plot_ly(
     type = "sankey",
     orientation = "h",
+    selectedpoints = c(0:10),
     node = list(
       label = labels$label,
+      #x = c(rep(0, length(unique(path_gene$kegg_paths_name))), rep(1, length(unique(gene_variant$gene_name))), rep(2, length(unique(gene_variant$var_name)))),
+      y = seq(0, nrow(labels), by = 1),
       color = "black",
       pad = 30,
       thickness = 30,
