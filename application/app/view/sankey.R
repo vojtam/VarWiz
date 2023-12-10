@@ -39,6 +39,7 @@ server <- function(id, dataset, selected_pathways_react) {
     labels <- reactiveVal()
     path_gene_tab <- reactiveVal()
     gene_variant_tab <- reactiveVal()
+    scores <- reactiveVal()
     
 
 # Render ------------------------------------------------------------------
@@ -64,8 +65,11 @@ server <- function(id, dataset, selected_pathways_react) {
       labels(data[[1]])
       path_gene <- unique(data[[2]][, .(kegg_paths_name, gene_name, first, second)])
       gene_variant <- unique(data[[2]][, .(gene_name, var_name, second, third)])
+      setorder(path_gene, first)
+      setorder(gene_variant, second)
       path_gene_tab(path_gene)
       gene_variant_tab(gene_variant)
+      scores(data[[3]])
       
       plot <- create_sankey(labels(), path_gene, gene_variant, data[[3]])
       sankey_plot(plot)
@@ -80,7 +84,7 @@ server <- function(id, dataset, selected_pathways_react) {
       
     
       link_colors <- rep("lightgray", nrow(labels()))
-      link_colors[link_ids - 1] <- "red"
+      link_colors[link_ids] <- "red"
 
       proxy <- plotlyProxy("sankey_plt", session)
       plotlyProxyInvoke(proxy, "restyle",
@@ -145,11 +149,10 @@ sankey_link_selection <- function(click_data, path_gene_tab, gene_variant_tab) {
 #' @examples
 first_level_link_selection <- function(clicked_link, path_gene_tab, gene_variant_tab) {
   select_gene_name <- path_gene_tab[clicked_link]$gene_name
-  first_links <- clicked_link + 1
-  second_links <- gene_variant_tab[gene_name == select_gene_name]$third
-  if (nrow(unique(path_gene_tab[, .(kegg_paths_name)])) > 1) {
-    second_links <- second_links - 1
-  }
+  labels <- data.table(label = c(path_gene_tab$kegg_paths_name, gene_variant_tab$gene_name), id = c(path_gene_tab$first, gene_variant_tab$second))
+  first_links <- clicked_link
+
+  second_links <- which(labels$label == select_gene_name)
   link_ids <- unique(c(
     first_links,
     second_links)
@@ -170,11 +173,11 @@ first_level_link_selection <- function(clicked_link, path_gene_tab, gene_variant
 #' @examples
 second_level_link_selection <- function(clicked_link, path_gene_tab, gene_variant_tab) {
   select_gene_name <- gene_variant_tab[(clicked_link - nrow(path_gene_tab))]$gene_name
-  first_links <- which(path_gene_tab$gene_name == select_gene_name) + 1
-  second_links <- gene_variant_tab[gene_name == select_gene_name]$third
-  if (nrow(unique(path_gene_tab[, .(kegg_paths_name)])) > 1) {
-    second_links <- second_links - 1
-  }
+  labels <- data.table(label = c(path_gene_tab$kegg_paths_name, gene_variant_tab$gene_name), id = c(path_gene_tab$first, gene_variant_tab$second))
+  
+  first_links <- which(path_gene_tab$gene_name == select_gene_name) 
+  second_links <- which(labels$label == select_gene_name)
+
   link_ids <- unique(c(
     first_links,
     second_links)

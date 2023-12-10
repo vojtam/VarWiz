@@ -51,7 +51,6 @@ sankey_prepare_data <- function(dataset, selected_pathways) {
   setnames(with_source, old = c("id", "i.id", "i.id.1"), new = c("first", "second", "third"))
   full <- unique(na.omit(with_source))
   path_gene <- unique(full[, .(kegg_paths_name, gene_name, first, second)])
-  gene_variant <- unique(full[, .(gene_name, var_name, second, third)])
   scores <- c(rle(rleid(c(full$first + full$second)))$lengths, rep(1, nrow(full)))
   return(list(labels, full, scores))
 }
