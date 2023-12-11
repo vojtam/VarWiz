@@ -98,10 +98,10 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   moduleServer(id, function(input, output, session) {
-    runjs("console.log('hello')")
     data <- preprocess_data()
     browser$server("browser", data)
     selected_pathways <- table$server("table", data)
-    sankey$server("sankey", data, selected_pathways)
+    selected_gene_rval <- sankey$server("sankey", data, selected_pathways)
+    lollipop$server("lollipop", data, selected_gene_rval)
   })
 }

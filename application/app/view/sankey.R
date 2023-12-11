@@ -35,11 +35,15 @@ server <- function(id, dataset, selected_pathways_react) {
   moduleServer(id, function(input, output, session) {
     ns <- NS(id)
     # reactive value holding the sankey plot
+    
+
+# reactiveVal initialization ----------------------------------------------
+
     sankey_plot <- reactiveVal()
     labels <- reactiveVal()
     path_gene_tab <- reactiveVal()
     gene_variant_tab <- reactiveVal()
-    scores <- reactiveVal()
+    selected_gene_name <- reactiveVal()
     
 
 # Render ------------------------------------------------------------------
@@ -51,7 +55,6 @@ server <- function(id, dataset, selected_pathways_react) {
       # output the contents of the sankey_plot reactive value
       sankey_plot()
     })
-    
     
     
 
@@ -69,7 +72,6 @@ server <- function(id, dataset, selected_pathways_react) {
       setorder(gene_variant, second)
       path_gene_tab(path_gene)
       gene_variant_tab(gene_variant)
-      scores(data[[3]])
       
       plot <- create_sankey(labels(), path_gene, gene_variant, data[[3]])
       sankey_plot(plot)
@@ -80,8 +82,10 @@ server <- function(id, dataset, selected_pathways_react) {
       click_data <- event_data("plotly_click", priority = "event")
       req(click_data)
       
-      link_ids <- sankey_link_selection(click_data, path_gene_tab(), gene_variant_tab())
-      
+      result <- sankey_link_selection(click_data, path_gene_tab(), gene_variant_tab())
+      link_ids <- result[[1]]
+      gene_name <- result[[2]]
+      selected_gene_name(gene_name)
     
       link_colors <- rep("lightgray", nrow(labels()))
       link_colors[link_ids] <- "red"
@@ -113,6 +117,8 @@ server <- function(id, dataset, selected_pathways_react) {
       )
       shinyjs::runjs(js_call)
     }, ignoreInit = TRUE)
+    
+    return(selected_gene_name)
   })
 }
 
@@ -157,7 +163,7 @@ first_level_link_selection <- function(clicked_link, path_gene_tab, gene_variant
     first_links,
     second_links)
   )
-  return(link_ids)
+  return(list(link_ids, select_gene_name))
 }
 
 
@@ -182,7 +188,7 @@ second_level_link_selection <- function(clicked_link, path_gene_tab, gene_varian
     first_links,
     second_links)
   )
-  return(link_ids)
+  return(list(link_ids, select_gene_name))
 }
 
 
