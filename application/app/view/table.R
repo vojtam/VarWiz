@@ -1,7 +1,8 @@
 box::use(
   shiny[moduleServer, req, NS, observeEvent, tagList, reactiveVal, h3, div, reactive, HTML],
   bs4Dash[actionButton, useAutoColor, box],
-  DT[renderDataTable, dataTableOutput]
+  DT[renderDataTable, dataTableOutput],
+  gargoyle[trigger]
 )
 
 box::use(
@@ -106,6 +107,27 @@ server <- function(id, data) {
           
         }
       }
+      
+    })
+    
+    
+    observeEvent(input$reset_btn, {
+      if ((is_path_tab_active())) {
+        selected_pathways(NULL)
+        output$table <- render_pathways_table(
+          pathways_tab()
+        )
+        trigger("reset_sankey")
+        
+      }
+      else {
+        selected_genes(NULL)
+        output$table <- render_genes_table(
+          genes_tab()
+        )
+      }
+      
+      
     })
     
     
@@ -132,7 +154,7 @@ server <- function(id, data) {
       print(selected_pathways())
     })
     
-    return(selected_pathways)
+    return(reactiveVal(list(selected_pathways, selected_genes, is_path_tab_active)))
   })
 }
 

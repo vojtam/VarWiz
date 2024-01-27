@@ -34,9 +34,14 @@ box::use(
 #' @export
 #'
 #' @examples
-sankey_prepare_data <- function(dataset, selected_pathways) {
+sankey_prepare_data <- function(dataset, selected_pathways, selected_genes, is_pathway) {
   # filter the selected_pathways -> | gene_name | kegg_paths_name |
-  sankey_data <- dataset[kegg_paths_name %in% selected_pathways$pathway, .(gene_name, kegg_paths_name, var_name)]
+  if (!is_pathway) {
+    sankey_data <- dataset[gene_name %in% selected_genes$gene_name, .(gene_name, kegg_paths_name, var_name)]
+  } else {
+    sankey_data <- dataset[kegg_paths_name %in% selected_pathways$pathway, .(gene_name, kegg_paths_name, var_name)]
+  }
+
   setorder(sankey_data, kegg_paths_name, gene_name)
   labels_all <- data.table(
     label = c(sankey_data$kegg_paths_name, sankey_data$gene_name, sankey_data$var_name)
@@ -91,7 +96,6 @@ create_sankey <- function(labels, path_gene, gene_variant, scores) {
   )
   
   fig <- fig |> layout(
-    title = "Sankey Diagram",
     font = list(
       size = 14
     )

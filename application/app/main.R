@@ -2,11 +2,13 @@ box::use(
   shiny[bootstrapPage, div, icon, moduleServer, fluidRow, NS, renderUI, tags, uiOutput],
   bs4Dash[box, dashboardPage, tabItems, tabItem, sidebarMenu, menuItem, dashboardHeader, column, dashboardBrand, dashboardSidebar, dashboardBody],
   thematic[thematic_shiny],
-  shinyjs[useShinyjs, runjs]
+  shinyjs[useShinyjs, runjs],
+  gargoyle[init]
 )
 
 box::use(
-  app/logic/data_preprocessor[preprocess_data]
+  app/logic/data_preprocessor[preprocess_data],
+  app/logic/data_preprocessor[preprocess_maf_data]
 )
 
 box::use(
@@ -98,10 +100,13 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   moduleServer(id, function(input, output, session) {
-    data <- preprocess_data()
+    init("reset_sankey")
+    
+    # data <- preprocess_data()
+    data <- preprocess_maf_data()
     browser$server("browser", data)
-    selected_pathways <- table$server("table", data)
-    selected_gene_rval <- sankey$server("sankey", data, selected_pathways)
+    selected_features <- table$server("table", data)
+    selected_gene_rval <- sankey$server("sankey", data, selected_features()[[1]], selected_features()[[2]], selected_features()[[3]])
     lollipop$server("lollipop", data, selected_gene_rval)
   })
 }

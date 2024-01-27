@@ -32,14 +32,14 @@ server <- function(id, data, selected_gene_rval) {
       plot.options <- g3Lollipop.theme(theme.name = "cbioportal",
                                        title.text = selected_gene_rval(),
                                        y.axis.label = "# of Mutations")
-      
+
       g3viz::g3Lollipop(
         mutation.dat = filter_tab,
         gene.symbol = selected_gene_rval(),
         gene.symbol.col = "gene_name",
-        aa.pos.col = "protein_pos",
+        aa.pos.col = "Protein_position",
         protein.change.col = "HGVSp",
-        factor.col = "consequence",
+        factor.col = "Consequence",
         btn.style = "gray", # gray-style chart download buttons
         plot.options = plot.options,
       )
