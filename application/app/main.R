@@ -1,11 +1,14 @@
 box::use(
-  shiny[bootstrapPage, div, icon, moduleServer, fluidRow, NS, renderUI, tags, uiOutput],
+  shiny[...],
   bs4Dash[box, dashboardPage, tabItems, tabItem, sidebarMenu, menuItem, dashboardHeader, column, dashboardBrand, dashboardSidebar, dashboardBody],
   thematic[thematic_shiny],
   shinyjs[useShinyjs, runjs],
-  gargoyle[init]
+  gargoyle[init],
+  utils[globalVariables]
 )
+globalVariables(c("mutation.table.df", "hgnc2pfam.df"))
 
+library(g3viz)
 box::use(
   app/logic/data_preprocessor[preprocess_data],
   app/logic/data_preprocessor[preprocess_maf_data]
@@ -15,7 +18,8 @@ box::use(
   app/view/table,
   app/view/sankey,
   app/view/lollipop,
-  app/view/browser
+  app/view/browser,
+  app/view/plot_options
 )
 
 thematic_shiny()
@@ -70,6 +74,7 @@ ui <- function(id) {
           fluidRow(
             column(
               width = 9,
+              plot_options$ui(ns("plot_options")),
               sankey$ui(ns("sankey")),
               lollipop$ui(ns("lollipop"))
             ),
@@ -97,16 +102,33 @@ ui <- function(id) {
   )
 }
 
+
+whole_dataset <- preprocess_maf_data()
+
 #' @export
 server <- function(id) {
   moduleServer(id, function(input, output, session) {
     init("reset_sankey")
-    
+
+    ns <- NS(id)
+    data <- reactiveVal(whole_dataset)
+    options <- plot_options$server("plot_options", unique(data()$Variant_Type), unique(data()$Consequence))
+    observeEvent(options(), {
+      req(options()[[1]])
+      print("FILTERING")
+      selected_var_types <- options()[[1]]
+      selected_consequences <- options()[[2]]
+      
+      tab <- whole_dataset[Variant_Type %in% selected_var_types]
+      data(tab[Consequence %in% selected_consequences])
+      
+    })
+
     # data <- preprocess_data()
-    data <- preprocess_maf_data()
-    browser$server("browser", data)
-    selected_features <- table$server("table", data)
+    browser$server("browser", data())
+    
+    selected_features <- table$server("table", data())
     selected_gene_rval <- sankey$server("sankey", data, selected_features()[[1]], selected_features()[[2]], selected_features()[[3]])
-    lollipop$server("lollipop", data, selected_gene_rval)
+    lollipop$server("lollipop", data(), selected_gene_rval)
   })
 }

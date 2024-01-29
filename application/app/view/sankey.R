@@ -1,11 +1,11 @@
 box::use(
-  shiny[moduleServer, verbatimTextOutput, renderPrint, isolate, NS, req, validate, need, tagList, renderPlot, plotOutput, observeEvent, reactiveVal, reactiveValues],
+  shiny[moduleServer, observe, reactive, br, div, verbatimTextOutput, renderPrint, isolate, NS, req, validate, need, tagList, renderPlot, plotOutput, observeEvent, reactiveVal, reactiveValues],
   plotly[plot_ly, event_data, plotlyOutput, renderPlotly, plotlyProxy, plotlyProxyInvoke],
   data.table[...],
   bs4Dash[box],
   stats[na.omit],
   shinyjs[...],
-  gargoyle[on]
+  gargoyle[...]
 )
 
 box::use(
@@ -16,7 +16,6 @@ box::use(
 ui <- function(id) {
   ns <- NS(id)
   tagList(
-    
     box(
       width = 12,
       height = "50vh",
@@ -52,6 +51,7 @@ server <- function(id, dataset, selected_pathways_react, selected_genes_react, i
 # Render ------------------------------------------------------------------
 
     output$sankey_plt <- renderPlotly({
+      print(nrow(dataset()))
       validate(
         need(!((is.null(selected_pathways_react()) || nrow(selected_pathways_react()) == 0)
                && (is.null(selected_genes_react()) || nrow(selected_genes_react()) == 0)),
@@ -79,10 +79,11 @@ server <- function(id, dataset, selected_pathways_react, selected_genes_react, i
     }) 
     
     # data is passed into module -> create sankey
-    observeEvent(selected_pathways_react(), {
+    observe({
       req(selected_pathways_react())
+      print("GO GO GO")
 
-      data <- sankey_prepare_data(dataset, selected_pathways_react(), selected_genes_react(), TRUE)
+      data <- sankey_prepare_data(dataset(), selected_pathways_react(), selected_genes_react(), TRUE)
       labels(data[[1]])
       path_gene <- unique(data[[2]][, .(kegg_paths_name, gene_name, first, second)])
       gene_variant <- unique(data[[2]][, .(gene_name, var_name, second, third)])
@@ -97,8 +98,8 @@ server <- function(id, dataset, selected_pathways_react, selected_genes_react, i
     
     observeEvent(selected_genes_react(), {
       req(selected_genes_react())
-      print(selected_genes_react())
-      data <- sankey_prepare_data(dataset, selected_pathways_react(), selected_genes_react(), FALSE)
+    
+      data <- sankey_prepare_data(dataset(), selected_pathways_react(), selected_genes_react(), FALSE)
       labels(data[[1]])
       path_gene <- unique(data[[2]][, .(kegg_paths_name, gene_name, first, second)])
       gene_variant <- unique(data[[2]][, .(gene_name, var_name, second, third)])

@@ -15,3 +15,24 @@ $light-red: #dc3545;
   color: $dark-blue;
   font-size: 22px;
 }
+
+
+.flex-centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.awesome-checkbox {
+  margin-left: 15px !important;
+  margin-right: 15px !important ;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+
+.control-label {
+  font-size: 18px;
+}
