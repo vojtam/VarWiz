@@ -114,8 +114,8 @@ server <- function(id) {
     data <- reactiveVal(whole_dataset)
     options <- plot_options$server("plot_options", unique(data()$Variant_Type), unique(data()$Consequence))
     observeEvent(options(), {
-      req(options()[[1]])
-      print("FILTERING")
+      req((length(options()[[1]]) > 0 || length(options()[[2]] > 0)))
+
       selected_var_types <- options()[[1]]
       selected_consequences <- options()[[2]]
       
@@ -129,6 +129,6 @@ server <- function(id) {
     
     selected_features <- table$server("table", data())
     selected_gene_rval <- sankey$server("sankey", data, selected_features()[[1]], selected_features()[[2]], selected_features()[[3]])
-    lollipop$server("lollipop", data(), selected_gene_rval)
+    lollipop$server("lollipop", data, selected_gene_rval)
   })
 }

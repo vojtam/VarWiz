@@ -27,8 +27,7 @@ server <- function(id, data, selected_gene_rval) {
 
     output$lollipop_plot <- renderG3Lollipop({
       req(selected_gene_rval())
-      print(selected_gene_rval())
-      filter_tab <- data[gene_name == selected_gene_rval()]
+      filter_tab <- data()[gene_name == selected_gene_rval()]
       plot.options <- g3Lollipop.theme(theme.name = "cbioportal",
                                        title.text = selected_gene_rval(),
                                        y.axis.label = "# of Mutations")

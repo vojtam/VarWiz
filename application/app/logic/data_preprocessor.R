@@ -1,7 +1,8 @@
 
 box::use(
   data.table[...],
-  stats[na.omit]
+  stats[na.omit],
+  RColorBrewer[brewer.pal]
 )
 
 
@@ -61,11 +62,17 @@ preprocess_maf_data <- function() {
            new = c("ensembl_id", "gene_name", "Allele")
   )
   
+
   variants_tab <- na.omit(variants_tab)
-  genes_sample <- sample(variants_tab$gene_name, 2000)
+  genes_sample <- variants_tab$gene_name
+  
   variants_tab <- variants_tab[gene_name %in% genes_sample]
   variants_tab[, var_name := paste0(Chromosome, "_", Start_Position, "_", Reference_Allele, "/", Allele)]
   tab <- variants_tab[kegg_tab, on = "ensembl_id", nomatch = 0, allow.cartesian = TRUE]
+  
+  variant_types <-unique(tab$Variant_Type)
+  colors_tab <- data.table(col = brewer.pal(length(variant_types), "Set2"), Variant_Type = variant_types)
+  tab <- tab[colors_tab, on = "Variant_Type"]
   return(tab)
   
 }

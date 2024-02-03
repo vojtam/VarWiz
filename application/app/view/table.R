@@ -27,12 +27,12 @@ ui <- function(id) {
         HTML(
           '
                   <div id="feat-radio" style="margin-left: 15px" class="feat-radio-container">
-                    <h4>Pathway</h4>
+                    <h4>Gene</h4>
                     <div class="toggle-switch-feat">
                       <input  name="checkbox-feature" class="toggle-input-feat" id="toggle-feat" type="checkbox">
                       <label class="toggle-label-feat" for="toggle-feat"></label>
                     </div>
-                    <h4>Gene</h4>
+                    <h4>Pathway</h4>
                   </div>
 
                   <script>
@@ -40,9 +40,9 @@ ui <- function(id) {
                   var checkbox = document.querySelector("input[name=checkbox-feature]");
                   checkbox.addEventListener("change", function() {
                     if (this.checked) {
-                      Shiny.setInputValue("app-table-feature_radio", "gene", {priority: "event"});
-                    } else {
                       Shiny.setInputValue("app-table-feature_radio", "pathway", {priority: "event"});
+                    } else {
+                      Shiny.setInputValue("app-table-feature_radio", "gene", {priority: "event"});
                     }
                   });
 
@@ -64,7 +64,7 @@ ui <- function(id) {
 server <- function(id, data) {
   
   moduleServer(id, function(input, output, session) {
-    is_path_tab_active <- reactiveVal(TRUE)
+    is_path_tab_active <- reactiveVal(FALSE)
     selected_pathways <- reactiveVal(NULL)
     selected_genes <- reactiveVal(NULL)
     
@@ -78,11 +78,11 @@ server <- function(id, data) {
       unique(data[, .(gene_name)])
     })
     
-    observeEvent(pathways_tab(),{
-      req(pathways_tab())
-      output$table <- render_pathways_table(
-        pathways_tab(),
-        selected_pathways()
+    observeEvent(genes_tab(),{
+      req(genes_tab())
+      output$table <- render_genes_table(
+        genes_tab(),
+        selected_genes()
       )
     })
 
@@ -137,7 +137,6 @@ server <- function(id, data) {
       row <- input$table_cell_clicked[["row"]]
       req(gene)
       if (is.null(row)) {
-        print("it is null")
         return(NULL)
       }
       
@@ -151,7 +150,6 @@ server <- function(id, data) {
         features[, row_i := rows]
         selected_genes(features)
       }
-      print(selected_pathways())
     })
     
     return(reactiveVal(list(selected_pathways, selected_genes, is_path_tab_active)))

@@ -2,7 +2,9 @@ box::use(
   shiny[moduleServer, observe, reactive, br, div, verbatimTextOutput, renderPrint, isolate, NS, req, validate, need, tagList, renderPlot, plotOutput, observeEvent, reactiveVal, reactiveValues],
   plotly[plot_ly, event_data, plotlyOutput, renderPlotly, plotlyProxy, plotlyProxyInvoke],
   data.table[...],
+  purrr[map2],
   bs4Dash[box],
+  graphics[legend, mtext],
   stats[na.omit],
   shinyjs[...],
   gargoyle[...]
@@ -18,14 +20,15 @@ ui <- function(id) {
   tagList(
     box(
       width = 12,
-      height = "50vh",
+      height = "54vh",
       title = "Sankey Diagram",
       status = "navy",
       maximizable = TRUE,
       solidHeader = TRUE,
       id = ns("sankey_box"),
+      div(id = "legend"),
       plotlyOutput(ns("sankey_plt"), height = "50vh")
-      
+      #plotOutput(ns("sankey_legend"))
     )
   )
 }
@@ -35,7 +38,6 @@ server <- function(id, dataset, selected_pathways_react, selected_genes_react, i
   moduleServer(id, function(input, output, session) {
     ns <- NS(id)
     # reactive value holding the sankey plot
-    
 
 # reactiveVal initialization ----------------------------------------------
 
@@ -51,12 +53,17 @@ server <- function(id, dataset, selected_pathways_react, selected_genes_react, i
 # Render ------------------------------------------------------------------
 
     output$sankey_plt <- renderPlotly({
-      print(nrow(dataset()))
+      
       validate(
         need(!((is.null(selected_pathways_react()) || nrow(selected_pathways_react()) == 0)
                && (is.null(selected_genes_react()) || nrow(selected_genes_react()) == 0)),
              "select the features (pathways / genes) that you want to visualize from the table on the right")
       )
+      
+      legend_tab <- unique(dataset()[, .(Variant_Type, col)])
+      prepare_legend_r()
+      map2(.x = legend_tab$Variant_Type, .y = legend_tab$col, \(title, color) add_to_legend_r(title, color))
+
       # output the contents of the sankey_plot reactive value
       if (is_path_tab_active()) {
         sankey_pathway_plot()
@@ -64,6 +71,7 @@ server <- function(id, dataset, selected_pathways_react, selected_genes_react, i
         sankey_gene_plot()
       }
     })
+    
     
     
 
@@ -80,36 +88,40 @@ server <- function(id, dataset, selected_pathways_react, selected_genes_react, i
     
     # data is passed into module -> create sankey
     observe({
-      req(selected_pathways_react())
-      print("GO GO GO")
-
-      data <- sankey_prepare_data(dataset(), selected_pathways_react(), selected_genes_react(), TRUE)
+      
+      if (is_path_tab_active()) {
+        req(selected_pathways_react())
+      }
+      else {
+        req(selected_genes_react())
+      }
+      
+      data <- sankey_prepare_data(dataset(), selected_pathways_react(), selected_genes_react(), is_path_tab_active())
       labels(data[[1]])
       path_gene <- unique(data[[2]][, .(kegg_paths_name, gene_name, first, second)])
-      gene_variant <- unique(data[[2]][, .(gene_name, var_name, second, third)])
+      gene_variant <- unique(data[[2]][, .(gene_name, var_name, col, second, third)])
       setorder(path_gene, first)
       setorder(gene_variant, second)
       path_gene_tab(path_gene)
       gene_variant_tab(gene_variant)
       
-      plot <- create_sankey(labels(), path_gene, gene_variant, data[[3]])
-      sankey_pathway_plot(plot)
+      
+      colors <- NULL
+      if (nrow(labels()) > 0) {
+        colors <- c(rep("lightgray", nrow(path_gene)), gene_variant$col) 
+
+      }
+      plot <- create_sankey(labels(), path_gene, gene_variant, data[[3]], colors)
+      
+      if (is_path_tab_active()) {
+        sankey_pathway_plot(plot)
+      }
+      else {
+        sankey_gene_plot(plot)
+      }
     })
     
-    observeEvent(selected_genes_react(), {
-      req(selected_genes_react())
-    
-      data <- sankey_prepare_data(dataset(), selected_pathways_react(), selected_genes_react(), FALSE)
-      labels(data[[1]])
-      path_gene <- unique(data[[2]][, .(kegg_paths_name, gene_name, first, second)])
-      gene_variant <- unique(data[[2]][, .(gene_name, var_name, second, third)])
-      setorder(path_gene, first)
-      setorder(gene_variant, second)
-      path_gene_tab(path_gene)
-      gene_variant_tab(gene_variant)
-      plot <- create_sankey(labels(), path_gene, gene_variant, data[[3]])
-      sankey_gene_plot(plot)
-    })
+
     
     
     observeEvent(event_data("plotly_click", priority = "event"), {
@@ -123,12 +135,15 @@ server <- function(id, dataset, selected_pathways_react, selected_genes_react, i
     
       link_colors <- rep("lightgray", nrow(labels()))
       link_colors[link_ids] <- "red"
-
+      
       proxy <- plotlyProxy("sankey_plt", session)
       plotlyProxyInvoke(proxy, "restyle",
                         list(link.color = list(link_colors)))
                     
     })
+    
+    
+    
     
     
     observeEvent(input$sankey_box$maximized, {
@@ -225,4 +240,39 @@ second_level_link_selection <- function(clicked_link, path_gene_tab, gene_varian
   return(list(link_ids, select_gene_name))
 }
 
+prepare_legend_r <- function() {
+  js_call <- "
+    let legend_div = document.getElementById('legend');
+    legend_div.textContent = '';
+  "
+  shinyjs::runjs(js_call)
+}
 
+add_to_legend_r <- function(title, color) {
+  js_call <- sprintf(
+    "
+
+	  let legend_div = document.getElementById('legend');
+	
+    let legend_item = document.createElement('div');
+    let col_circle = document.createElement('div');
+    let legend_span = document.createElement('span');
+
+    legend_item.classList.add('legend-item');
+    col_circle.classList.add('legend-col-circle');
+    legend_span.classList.add('legend-span');
+
+    legend_span.textContent = '%s';
+    col_circle.style.backgroundColor = '%s';
+
+    legend_item.append(col_circle);
+    legend_item.append(legend_span);
+
+    legend_div.append(legend_item);
+    
+    
+    console.log('DONE');
+    "
+  , title, color)
+  shinyjs::runjs(js_call)
+}
